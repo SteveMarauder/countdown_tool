@@ -107,7 +107,8 @@ function updateButtons() {
   const idle = event?.status === 'idle';
   for (const id of ['title-input','subtitle-input','duration-fields','save-settings','target-time']) $(id).disabled = !unlocked || !idle;
   $('start').disabled = !unlocked || !idle || confirmedRevision !== event?.revision;
-  $('start').hidden = !idle;
+  $('start').hidden = !token || !idle || adminView !== 'official';
+  $('phase').hidden = !!token && idle && adminView === 'official';
   $('edit-settings').hidden = !idle;
   $('edit-settings').disabled = !unlocked || !idle;
   $('pause').hidden = event?.status !== 'running' || remaining(event, clock.now()) <= 0;

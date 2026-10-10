@@ -5,8 +5,8 @@
   <meta name="theme-color" content="#04101A">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>CDTT × AI｜賽事倒數計時</title>
-  <link rel="icon" href="assets/cdtt-ai-hackathon-favicon.svg"><link rel="stylesheet" href="style.css?v=3">
-  <script src="config.js" defer></script><script type="module" src="app.mjs?v=3"></script>
+  <link rel="icon" href="assets/cdtt-ai-hackathon-favicon.svg"><link rel="stylesheet" href="style.css?v=4">
+  <script src="config.js" defer></script><script type="module" src="app.mjs?v=4"></script>
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -15,6 +15,7 @@
     <div class="eyebrow"><span class="line"></span> OFFICIAL COMPETITION CLOCK <span class="line"></span></div>
     <h1 id="event-title">AI HACKATHON</h1><p id="subtitle">創意正在發生，讓每一秒都有意義。</p>
     <div id="phase" class="phase">等待賽事設定</div>
+    <button id="start" class="launch-button inline-launch" hidden>▶ 正式開賽</button>
     <section class="timer" aria-label="賽事剩餘時間" role="timer">
       <div class="unit"><span id="hours">03</span><small>HOURS / 小時</small></div><b class="colon">:</b>
       <div class="unit"><span id="minutes">00</span><small>MINUTES / 分鐘</small></div><b class="colon">:</b>
@@ -25,7 +26,7 @@
     <div id="notice" class="notice" role="status">正在連線取得正式賽事設定…</div>
     <section id="admin-stage" class="admin-stage" hidden aria-label="正式賽事控制">
       <div class="stage-heading"><span class="stage-dot"></span><div><strong id="stage-title">設定已確認 · 準備開賽</strong><p id="stage-note">確認現場準備完成後，按下正式開賽。</p></div><span class="admin-badge">管理者專用</span></div>
-      <div class="stage-actions"><button id="edit-settings" class="quiet">修改賽事設定</button><button id="start" class="launch-button">▶ 正式開賽</button><button id="pause">暫停賽事</button><button id="resume" class="primary">▶ 繼續賽事</button><button id="reset" class="danger">重設賽事</button><button id="stage-logout" class="text-button">退出管理</button></div>
+      <div class="stage-actions"><button id="edit-settings" class="quiet">修改賽事設定</button><button id="pause">暫停賽事</button><button id="resume" class="primary">▶ 繼續賽事</button><button id="reset" class="danger">重設賽事</button><button id="stage-logout" class="text-button">退出管理</button></div>
       <p id="stage-message" role="status"></p>
     </section>
   </main>

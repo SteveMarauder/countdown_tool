@@ -1,5 +1,5 @@
-const CACHE = 'cdtt-clock-v3.1';
-const SHELL = ['./','./index.html','./style.css?v=3','./app.mjs?v=3','./core.mjs','./config.js','./assets/cdtt-ai-hackathon-logo.svg','./assets/cdtt-ai-hackathon-favicon.svg','./assets/taichung-night.png'];
+const CACHE = 'cdtt-clock-v4';
+const SHELL = ['./','./index.html','./style.css?v=4','./app.mjs?v=4','./core.mjs','./config.js','./assets/cdtt-ai-hackathon-logo.svg','./assets/cdtt-ai-hackathon-favicon.svg','./assets/taichung-night.png'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL))));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('cdtt-clock-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
