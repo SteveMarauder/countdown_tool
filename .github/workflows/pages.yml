@@ -1,0 +1,49 @@
+name: Deploy competition clock to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm test
+  deploy:
+    needs: test
+    if: ${{ vars.CLOCK_API_URL != '' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Set Cloudflare API endpoint
+        env:
+          CLOCK_API_URL: ${{ vars.CLOCK_API_URL }}
+        run: |
+          node --input-type=module -e '
+            import {writeFileSync} from "node:fs";
+            const url = new URL(process.env.CLOCK_API_URL);
+            if (url.protocol !== "https:" || url.username || url.password || url.pathname !== "/" || url.search || url.hash) throw new Error("CLOCK_API_URL must be an HTTPS origin");
+            writeFileSync("public/config.js", "window.CLOCK_CONFIG = " + JSON.stringify({apiBase:url.origin,pollMs:5000,syncMs:60000}) + ";");
+          '
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - uses: actions/deploy-pages@v4
+        id: deployment

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 560" role="img" aria-labelledby="title desc">
+  <title id="title">CDTT × AI compact mark</title>
+  <desc id="desc">A fine open circuit C with three colored nodes.</desc>
+  <g transform="translate(5 0)" fill="none" shape-rendering="geometricPrecision">
+    <path d="M410 108C246 72 116 151 96 268M96 292C117 414 248 487 410 452"
+          stroke="#55DEF8" stroke-width="18" stroke-linecap="round"/>
+    <g fill="#04101A" stroke-width="11">
+      <circle cx="410" cy="108" r="22" stroke="#55DEF8"/>
+      <circle cx="96" cy="280" r="22" stroke="#7C72FF"/>
+      <circle cx="410" cy="452" r="22" stroke="#F3C675"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#04101A">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.workers.dev; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>CDTT × AI｜賽事倒數計時</title>
+  <link rel="icon" href="assets/cdtt-ai-hackathon-favicon.svg"><link rel="stylesheet" href="style.css">
+  <script src="config.js" defer></script><script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <header><img class="logo" src="assets/cdtt-ai-hackathon-logo.svg" alt="CDTT × AI Hackathon"><div class="header-actions"><button id="fullscreen" class="quiet">全螢幕 ↗</button><button id="admin-open" class="quiet">管理者登入</button></div></header>
+  <main>
+    <div class="eyebrow"><span class="line"></span> OFFICIAL COMPETITION CLOCK <span class="line"></span></div>
+    <h1 id="event-title">AI HACKATHON</h1><p id="subtitle">創意正在發生，讓每一秒都有意義。</p>
+    <div id="phase" class="phase">等待賽事設定</div>
+    <section class="timer" aria-label="賽事剩餘時間" role="timer">
+      <div class="unit"><span id="hours">03</span><small>HOURS / 小時</small></div><b class="colon">:</b>
+      <div class="unit"><span id="minutes">00</span><small>MINUTES / 分鐘</small></div><b class="colon">:</b>
+      <div class="unit"><span id="seconds">00</span><small>SECONDS / 秒</small></div>
+    </section>
+    <div class="progress"><div id="progress-fill"></div></div>
+    <div class="deadline"><span>預定截止 · 台北時間</span><strong id="deadline">尚未開始</strong></div>
+    <div id="notice" class="notice" role="status">正在連線取得正式賽事設定…</div>
+  </main>
+  <footer><div><span id="signal" class="signal"></span><span id="connection">連線中</span><button id="sync" class="text-button">重新校時</button></div><div id="clock-info">UTC 時間校準中</div><div class="footer-mark">CDTT <span>×</span> AI HACKATHON</div></footer>
+  <dialog id="admin-dialog">
+    <div class="dialog-top"><div><span class="eyebrow">CONTROL ROOM</span><h2>賽事管理中心</h2></div><button id="admin-close" class="icon-button" aria-label="關閉管理中心">×</button></div>
+    <form id="login-form"><p>使用管理者帳戶登入，設定所有顯示器的賽事時間。</p><label>管理者帳戶<input name="username" autocomplete="username" required maxlength="80"></label><label>密碼<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label><button class="primary" type="submit">登入管理中心 →</button></form>
+    <section id="controls" hidden>
+      <div class="admin-meta"><span id="admin-user"></span><button id="logout" class="text-button">登出</button></div>
+      <form id="settings-form">
+        <label>賽事名稱<input id="title-input" maxlength="80" required></label><label>賽事說明<input id="subtitle-input" maxlength="160"></label>
+        <fieldset id="duration-fields"><legend>倒數時長</legend><div class="duration-inputs"><label>小時<input id="duration-hours" type="number" min="0" max="168" value="3" required></label><label>分鐘<input id="duration-minutes" type="number" min="0" max="59" value="0" required></label><label>秒<input id="duration-seconds" type="number" min="0" max="59" value="0" required></label></div></fieldset>
+        <p class="hint">支援 1 秒至 168 小時。開始後須重設才能修改。</p><button class="primary" id="save-settings" type="submit">儲存賽事設定</button>
+      </form>
+      <label class="target-label">指定截止時間（台北時間，選填）<input id="target-time" type="datetime-local" step="1"><span class="hint">留白則從開始時刻倒數設定時長。</span></label>
+      <div class="action-grid"><button id="start" class="primary">開始倒數</button><button id="pause">暫停</button><button id="resume">繼續倒數</button><button id="reset" class="danger">重設賽事</button></div>
+      <details><summary>最近管理操作</summary><ol id="audit"></ol></details>
+    </section>
+    <p id="admin-message" role="status" class="admin-message"></p>
+  </dialog>
+  <dialog id="confirm-dialog"><h2 id="confirm-title">確認操作</h2><p id="confirm-text"></p><div class="action-grid"><button id="confirm-cancel">取消</button><button id="confirm-ok" class="primary">確認</button></div></dialog>
+</body></html>
