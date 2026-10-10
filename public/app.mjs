@@ -190,7 +190,7 @@ $('start').onclick = async () => {
   const deadline_ms = confirmedDeadline;
   if (confirmedRevision !== event.revision) return;
   if (deadline_ms && deadline_ms <= clock.now()) { $('stage-message').textContent = '指定截止時間已過，請返回修改賽事設定。'; return; }
-  if (await confirmAction('確認正式開賽', deadline_ms ? `所有顯示器將倒數至台北時間 ${dateFormat.format(deadline_ms)}。確認現場準備完成後再開賽。` : `所有顯示器將開始 ${digits(event.duration_ms).join(':')} 的倒數。確認現場準備完成後再開賽。`)) await act('start', { deadline_ms });
+  await act('start', { deadline_ms });
 };
 $('pause').onclick = async () => { if (await confirmAction('暫停賽事', '所有顯示器將保留剩餘時間，繼續後截止時間會延後。')) await act('pause'); };
 $('resume').onclick = () => act('resume');
