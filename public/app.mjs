@@ -199,7 +199,7 @@ $('fullscreen').onclick = async () => {
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
   catch { $('notice').textContent = '瀏覽器未允許全螢幕，請使用瀏覽器的全螢幕功能。'; }
 };
-document.addEventListener('fullscreenchange', () => { document.body.classList.toggle('projection', !!document.fullscreenElement); $('fullscreen').textContent = document.fullscreenElement ? '退出全螢幕 ↙' : '全螢幕 ↗'; });
+document.addEventListener('fullscreenchange', () => { document.body.classList.toggle('projection', !!document.fullscreenElement); $('fullscreen').textContent = document.fullscreenElement ? '退出全螢幕 ↙' : '全螢幕 ↗'; window.scrollTo({top:0,behavior:'instant'}); });
 window.addEventListener('online', () => { calibrated = false; sync(); });
 window.addEventListener('offline', () => { connected = false; render(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { calibrated = false; sync(); } });
