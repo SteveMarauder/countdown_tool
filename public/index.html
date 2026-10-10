@@ -11,7 +11,7 @@
 <body>
   <div class="backdrop" aria-hidden="true"></div>
   <header><img class="logo" src="assets/cdtt-ai-hackathon-logo.svg" alt="CDTT × AI Hackathon"><div class="header-actions"><button id="fullscreen" class="quiet">全螢幕 ↗</button><button id="admin-open" class="quiet">管理者登入</button></div></header>
-  <main>
+  <main id="official-screen">
     <div class="eyebrow"><span class="line"></span> OFFICIAL COMPETITION CLOCK <span class="line"></span></div>
     <h1 id="event-title">AI HACKATHON</h1><p id="subtitle">創意正在發生，讓每一秒都有意義。</p>
     <div id="phase" class="phase">等待賽事設定</div>
@@ -23,23 +23,35 @@
     <div class="progress"><div id="progress-fill"></div></div>
     <div class="deadline"><span>預定截止 · 台北時間</span><strong id="deadline">尚未開始</strong></div>
     <div id="notice" class="notice" role="status">正在連線取得正式賽事設定…</div>
+    <section id="admin-stage" class="admin-stage" hidden aria-label="正式賽事控制">
+      <div class="stage-heading"><span class="stage-dot"></span><div><strong id="stage-title">設定已確認 · 準備開賽</strong><p id="stage-note">確認現場準備完成後，按下正式開賽。</p></div><span class="admin-badge">管理者專用</span></div>
+      <div class="stage-actions"><button id="edit-settings" class="quiet">修改賽事設定</button><button id="start" class="launch-button">▶ 正式開賽</button><button id="pause">暫停賽事</button><button id="resume" class="primary">▶ 繼續賽事</button><button id="reset" class="danger">重設賽事</button><button id="stage-logout" class="text-button">退出管理</button></div>
+      <p id="stage-message" role="status"></p>
+    </section>
   </main>
+  <section id="setup-screen" class="setup-screen" hidden aria-label="賽事設定">
+    <div class="setup-heading"><div><span class="eyebrow">COMPETITION CONTROL ROOM</span><h2>讓賽事，準備就緒。</h2><p>設定賽事資訊與倒數時間，確認後進入正式畫面。</p></div><div class="admin-meta"><span id="admin-user"></span><button id="logout" class="text-button">登出</button><button id="return-to-clock" class="quiet">返回計時畫面</button></div></div>
+    <div class="setup-steps"><span class="current"><b>01</b> 修改賽事設定</span><i></i><span><b>02</b> 確認正式畫面</span><i></i><span><b>03</b> 正式開賽</span></div>
+    <section id="controls" class="setup-grid" hidden>
+      <aside class="setup-preview"><span class="eyebrow">LIVE PREVIEW / 即時預覽</span><img src="assets/cdtt-ai-hackathon-mark.svg" alt="" class="preview-mark"><h3 id="preview-title">AI HACKATHON</h3><p id="preview-subtitle">創意正在發生，讓每一秒都有意義。</p><div id="preview-time" class="preview-time">03<span>:</span>00<span>:</span>00</div><div class="preview-labels">小時 <span>／</span> 分鐘 <span>／</span> 秒</div><div class="preview-rule"></div><div class="preview-ready">● 設定確認後，等待管理者開賽</div><p class="preview-caption">時間的每一刻，都是創意的下一步。</p></aside>
+      <div class="settings-card"><div class="card-heading"><span class="card-number">01</span><div><h3>賽事設定</h3><p>確認資訊後，所有觀眾畫面將同步更新。</p></div></div>
+        <form id="settings-form">
+          <label>賽事名稱<input id="title-input" maxlength="80" required></label><label>賽事說明<input id="subtitle-input" maxlength="160"></label>
+          <fieldset id="duration-fields"><legend>倒數時長</legend><div class="duration-inputs"><label>小時<input id="duration-hours" type="number" min="0" max="168" value="3" required></label><label>分鐘<input id="duration-minutes" type="number" min="0" max="59" value="0" required></label><label>秒<input id="duration-seconds" type="number" min="0" max="59" value="0" required></label></div></fieldset>
+          <p class="hint">支援 1 秒至 168 小時。儲存設定不會立即開始倒數。</p>
+          <details class="advanced-settings"><summary>指定截止時間（選填）</summary><label class="target-label">截止時間 · 台北時間<input id="target-time" type="datetime-local" step="1"><span class="hint">留白則從按下「正式開賽」時倒數設定時長。</span></label></details>
+          <button class="primary confirm-settings" id="save-settings" type="submit">確認設定，進入正式畫面 →</button>
+        </form>
+        <p id="admin-message" role="status" class="admin-message"></p>
+        <details class="audit-details"><summary>最近管理操作</summary><ol id="audit"></ol></details>
+      </div>
+    </section>
+  </section>
   <footer><div><span id="signal" class="signal"></span><span id="connection">連線中</span><button id="sync" class="text-button">重新校時</button></div><div id="clock-info">UTC 時間校準中</div><div class="footer-mark">CDTT <span>×</span> AI HACKATHON</div></footer>
   <dialog id="admin-dialog">
     <div class="dialog-top"><div><span class="eyebrow">CONTROL ROOM</span><h2>賽事管理中心</h2></div><button id="admin-close" class="icon-button" aria-label="關閉管理中心">×</button></div>
     <form id="login-form"><p>使用管理者帳戶登入，設定所有顯示器的賽事時間。</p><label>管理者帳戶<input name="username" autocomplete="username" required maxlength="80"></label><label>密碼<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label><button class="primary" type="submit">登入管理中心 →</button></form>
-    <section id="controls" hidden>
-      <div class="admin-meta"><span id="admin-user"></span><button id="logout" class="text-button">登出</button></div>
-      <form id="settings-form">
-        <label>賽事名稱<input id="title-input" maxlength="80" required></label><label>賽事說明<input id="subtitle-input" maxlength="160"></label>
-        <fieldset id="duration-fields"><legend>倒數時長</legend><div class="duration-inputs"><label>小時<input id="duration-hours" type="number" min="0" max="168" value="3" required></label><label>分鐘<input id="duration-minutes" type="number" min="0" max="59" value="0" required></label><label>秒<input id="duration-seconds" type="number" min="0" max="59" value="0" required></label></div></fieldset>
-        <p class="hint">支援 1 秒至 168 小時。開始後須重設才能修改。</p><button class="primary" id="save-settings" type="submit">儲存賽事設定</button>
-      </form>
-      <label class="target-label">指定截止時間（台北時間，選填）<input id="target-time" type="datetime-local" step="1"><span class="hint">留白則從開始時刻倒數設定時長。</span></label>
-      <div class="action-grid"><button id="start" class="primary">開始倒數</button><button id="pause">暫停</button><button id="resume">繼續倒數</button><button id="reset" class="danger">重設賽事</button></div>
-      <details><summary>最近管理操作</summary><ol id="audit"></ol></details>
-    </section>
-    <p id="admin-message" role="status" class="admin-message"></p>
+    <p id="login-message" role="status" class="admin-message"></p>
   </dialog>
   <dialog id="confirm-dialog"><h2 id="confirm-title">確認操作</h2><p id="confirm-text"></p><div class="action-grid"><button id="confirm-cancel">取消</button><button id="confirm-ok" class="primary">確認</button></div></dialog>
 </body></html>

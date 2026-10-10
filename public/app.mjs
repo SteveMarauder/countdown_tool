@@ -5,6 +5,23 @@ const apiBase = String(cfg.apiBase || '').replace(/\/$/, '');
 const namespace = `cdtt-clock:${apiBase || location.origin}`;
 const clock = new UtcClock();
 let event, token, username, pending = false, synchronizing = false, connected = false, calibrated = false, lastSync = 0, source = '', uncertainty = 0;
+let adminView = 'official', confirmedRevision = null, confirmedDeadline;
+function setAdminView(view) {
+  adminView = token && view === 'setup' ? 'setup' : 'official';
+  $('setup-screen').hidden = adminView !== 'setup';
+  $('official-screen').hidden = adminView === 'setup';
+  $('admin-stage').hidden = !token || adminView !== 'official';
+  document.body.classList.toggle('editing', adminView === 'setup');
+  updateButtons();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+function preview() {
+  $('preview-title').textContent = $('title-input').value || '賽事名稱';
+  $('preview-subtitle').textContent = $('subtitle-input').value || '準備好，讓創意開始。';
+  const parts = ['duration-hours','duration-minutes','duration-seconds'].map(id => String(Math.max(0, Number($(id).value) || 0)).padStart(2,'0'));
+  $('preview-time').replaceChildren();
+  parts.forEach((part,i) => { if(i) { const colon = document.createElement('span'); colon.textContent = ':'; $('preview-time').append(colon); } $('preview-time').append(document.createTextNode(part)); });
+}
 const dateFormat = new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 function store(key, value) { try { localStorage.setItem(namespace + key, JSON.stringify(value)); } catch { /* 儲存空間不足不影響已開啟畫面的倒數 */ } }
 function read(key) { try { return JSON.parse(localStorage.getItem(namespace + key)); } catch { return null; } }
@@ -82,13 +99,22 @@ function populate() {
   $('title-input').value = event.title; $('subtitle-input').value = event.subtitle;
   const d = digits(event.duration_ms);
   ['duration-hours','duration-minutes','duration-seconds'].forEach((id,i) => $(id).value = Number(d[i]));
+  preview();
   updateButtons();
 }
 function updateButtons() {
   const unlocked = !!token && connected && !pending && !!event;
   const idle = event?.status === 'idle';
   for (const id of ['title-input','subtitle-input','duration-fields','save-settings','target-time']) $(id).disabled = !unlocked || !idle;
-  $('start').disabled = !unlocked || !idle;
+  $('start').disabled = !unlocked || !idle || confirmedRevision !== event?.revision;
+  $('start').hidden = !idle;
+  $('edit-settings').hidden = !idle;
+  $('edit-settings').disabled = !unlocked || !idle;
+  $('pause').hidden = event?.status !== 'running' || remaining(event, clock.now()) <= 0;
+  $('resume').hidden = event?.status !== 'paused';
+  $('reset').hidden = idle;
+  $('stage-title').textContent = idle ? confirmedRevision === event?.revision ? '設定已確認 · 準備開賽' : '請先確認賽事設定' : event?.status === 'paused' ? '賽事暫停中' : remaining(event, clock.now()) <= 0 ? '賽事時間已結束' : '正式賽事進行中';
+  $('stage-note').textContent = idle ? confirmedRevision !== event?.revision ? '前往修改設定，確認後即可正式開賽。' : confirmedDeadline ? `已設定截止時間：${dateFormat.format(confirmedDeadline)}（台北時間）` : '現場準備完成後，按下正式開賽才會開始倒數。' : '控制操作將同步至所有觀眾畫面。';
   $('pause').disabled = !unlocked || event?.status !== 'running' || remaining(event, clock.now()) <= 0;
   $('resume').disabled = !unlocked || event?.status !== 'paused';
   $('reset').disabled = !unlocked || idle;
@@ -97,6 +123,7 @@ function showAuth() {
   $('login-form').hidden = !!token; $('controls').hidden = !token;
   $('admin-user').textContent = username ? `管理者：${username}` : '';
   $('admin-open').textContent = token ? '管理中心' : '管理者登入'; updateButtons();
+  if (!token) { confirmedRevision = null; confirmedDeadline = undefined; setAdminView('official'); }
 }
 async function audit() {
   if (!token) return;
@@ -107,14 +134,17 @@ async function audit() {
   } catch(e) { $('admin-message').textContent = e.message; }
 }
 async function act(action, input = {}) {
-  if (pending) return;
-  pending = true; updateButtons(); $('admin-message').textContent = '正在儲存，請稍候…';
+  if (pending) return false;
+  pending = true; updateButtons(); $('admin-message').textContent = $('stage-message').textContent = '正在儲存，請稍候…';
   try {
     const data = await api('/api/action', { method: 'POST', body: JSON.stringify({ action, revision: event.revision, ...input }) });
-    accept(data.event); $('admin-message').textContent = '已儲存，其他顯示器將於 5 秒內更新。'; await audit(); await sync();
+    accept(data.event); $('admin-message').textContent = $('stage-message').textContent = '已儲存，其他顯示器將於 5 秒內更新。'; await audit(); await sync();
+    return true;
   } catch(e) {
     $('admin-message').textContent = e.status ? e.message : '無法確認操作是否成功，正在重新讀取賽事。請確認目前狀態後再操作。';
     await loadEvent();
+    $('stage-message').textContent = $('admin-message').textContent;
+    return false;
   } finally { pending = false; updateButtons(); }
 }
 function confirmAction(title, text) {
@@ -126,37 +156,44 @@ function confirmAction(title, text) {
     $('confirm-ok').onclick = () => finish(true); $('confirm-cancel').onclick = () => finish(false); $('confirm-dialog').addEventListener('cancel', cancel);
   });
 }
-$('admin-open').onclick = () => { $('admin-message').textContent = ''; populate(); showAuth(); $('admin-dialog').showModal(); audit(); };
+$('admin-open').onclick = () => { if(token) { populate(); setAdminView(event?.status === 'idle' ? 'setup' : 'official'); audit(); return; } $('login-message').textContent = ''; showAuth(); $('admin-dialog').showModal(); };
 $('admin-close').onclick = () => $('admin-dialog').close();
 $('login-form').onsubmit = async e => {
   e.preventDefault(); const button = e.currentTarget.querySelector('button'); button.disabled = true;
-  $('admin-message').textContent = '正在登入…';
+  $('login-message').textContent = '正在登入…';
   try {
     const fields = new FormData(e.currentTarget);
     const data = await api('/api/login', { method: 'POST', body: JSON.stringify(Object.fromEntries(fields)) });
-    token = data.token; username = data.username; e.target.reset(); showAuth(); await loadEvent(); populate(); await audit(); $('admin-message').textContent = '登入成功。';
-  } catch(error) { $('admin-message').textContent = error.message; }
+    token = data.token; username = data.username; e.target.reset(); showAuth(); await loadEvent(); populate(); await audit(); $('admin-message').textContent = ''; $('admin-dialog').close(); setAdminView(event?.status === 'idle' ? 'setup' : 'official');
+  } catch(error) { $('login-message').textContent = error.message; }
   finally { button.disabled = false; }
 };
 $('logout').onclick = async () => {
   try { await api('/api/logout', { method: 'POST' }); token = null; username = ''; showAuth(); $('admin-message').textContent = '已登出。'; }
   catch { $('admin-message').textContent = '無法通知伺服器登出，請恢復連線後再試。'; }
 };
-$('settings-form').onsubmit = e => {
+$('stage-logout').onclick = $('logout').onclick;
+$('settings-form').onsubmit = async e => {
   e.preventDefault();
   const numbers = ['duration-hours','duration-minutes','duration-seconds'].map(id => Number($(id).value));
   if (numbers.some(n => !Number.isInteger(n))) { $('admin-message').textContent = '請輸入整數時間。'; return; }
-  act('configure', { title: $('title-input').value, subtitle: $('subtitle-input').value, duration_ms: (numbers[0]*3600+numbers[1]*60+numbers[2])*1000 });
-};
-$('start').onclick = async () => {
   const target = $('target-time').value;
-  const deadline_ms = target ? Date.parse(`${target}+08:00`) : undefined;
-  if (target && (!Number.isFinite(deadline_ms) || deadline_ms <= clock.now())) { $('admin-message').textContent = '截止時間必須在未來（台北時間）。'; return; }
-  if (await confirmAction('開始正式賽事', target ? `所有顯示器將倒數至台北時間 ${dateFormat.format(deadline_ms)}。` : `所有顯示器將開始 ${digits(event.duration_ms).join(':')} 的倒數。`)) await act('start', { deadline_ms });
+  const deadline = target ? Date.parse(`${target}+08:00`) : undefined;
+  if (target && (!Number.isFinite(deadline) || deadline <= clock.now() || deadline-clock.now()>168*3600000)) { $('admin-message').textContent = '截止時間必須在未來 168 小時內（台北時間）。'; return; }
+  if(await act('configure', { title: $('title-input').value, subtitle: $('subtitle-input').value, duration_ms: (numbers[0]*3600+numbers[1]*60+numbers[2])*1000 })) { confirmedRevision = event.revision; confirmedDeadline = deadline; setAdminView('official'); }
+};
+$('settings-form').addEventListener('input', preview);
+$('edit-settings').onclick = () => { populate(); setAdminView('setup'); };
+$('return-to-clock').onclick = () => setAdminView('official');
+$('start').onclick = async () => {
+  const deadline_ms = confirmedDeadline;
+  if (confirmedRevision !== event.revision) return;
+  if (deadline_ms && deadline_ms <= clock.now()) { $('stage-message').textContent = '指定截止時間已過，請返回修改賽事設定。'; return; }
+  if (await confirmAction('確認正式開賽', deadline_ms ? `所有顯示器將倒數至台北時間 ${dateFormat.format(deadline_ms)}。確認現場準備完成後再開賽。` : `所有顯示器將開始 ${digits(event.duration_ms).join(':')} 的倒數。確認現場準備完成後再開賽。`)) await act('start', { deadline_ms });
 };
 $('pause').onclick = async () => { if (await confirmAction('暫停賽事', '所有顯示器將保留剩餘時間，繼續後截止時間會延後。')) await act('pause'); };
 $('resume').onclick = () => act('resume');
-$('reset').onclick = async () => { if (await confirmAction('重設賽事', '目前的倒數進度將清除，並回到原設定時長的待命狀態。')) { await act('reset'); $('target-time').value = ''; } };
+$('reset').onclick = async () => { if (await confirmAction('重設賽事', '目前的倒數進度將清除，並回到原設定時長的待命狀態。')) { if(await act('reset')) { $('target-time').value = ''; confirmedRevision = null; confirmedDeadline = undefined; setAdminView('setup'); } } };
 $('sync').onclick = sync;
 $('fullscreen').onclick = async () => {
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
