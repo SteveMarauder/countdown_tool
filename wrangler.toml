@@ -1,6 +1,7 @@
 name = "cdtt-contest-clock"
 main = "backend/worker.mjs"
 compatibility_date = "2026-10-10"
+account_id = "f3b10ae36ee09cc7214516e8be733492"
 
 [vars]
 ALLOWED_ORIGINS = "https://stevemarauder.github.io"
@@ -8,7 +9,7 @@ ALLOWED_ORIGINS = "https://stevemarauder.github.io"
 [[d1_databases]]
 binding = "DB"
 database_name = "contest-clock"
-database_id = "REPLACE-WITH-D1-DATABASE-ID"
+database_id = "cabb8578-d593-4084-b6a8-d59dc33152e9"
 
 [triggers]
 crons = ["*/15 * * * *"]

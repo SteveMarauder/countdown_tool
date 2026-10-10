@@ -43,6 +43,8 @@ npx wrangler d1 execute contest-clock --remote --file=work/admin.sql
 npm run deploy:api
 ```
 
+也可以執行 `powershell -File scripts/Setup-Admin.ps1 -Publish`，在隱藏輸入密碼後直接匯入正式 D1。
+
 `work/admin.sql` 只有鹽值與密碼雜湊；檔案不會提交或發布。匯入後可以自行刪除。
 重跑帳戶建立並匯入會更新該帳戶密碼，撤銷該帳戶既有登入。
 每個管理者使用不同帳戶，才能辨識操作紀錄。
